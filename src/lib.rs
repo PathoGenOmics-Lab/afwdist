@@ -38,7 +38,6 @@ struct Allele {
     freq: f64,
 }
 
-// TODO: review struct (maybe 3 vect fields of the same size)
 struct Sample {
     name: String,
     variants: Vec<Allele>,
@@ -48,18 +47,6 @@ impl Sample {
     fn positions(&self) -> HashSet<usize> {
         self.variants.iter().map(|v| v.pos).collect()
     }
-
-    // fn frequencies(&self) -> Vec<f64> {
-    //     self.variants.iter().map(|v| v.freq).collect()
-    // }
-
-    // fn frequencies_at(&self, site: usize) -> Vec<f64> {
-    //     self.variants
-    //         .iter()
-    //         .filter(|v| v.pos == site)
-    //         .map(|v| v.freq)
-    //         .collect()
-    // }
 
     fn alleles_at(&self, site: usize) -> Vec<&Allele> {
         self.variants.iter().filter(|v| v.pos == site).collect()
@@ -88,19 +75,7 @@ impl Sample {
         alleles
     }
 
-    // fn frequency_at(&self, site: usize, seq: &String) -> f64 {
-    //     *self
-    //         .variants
-    //         .iter()
-    //         .filter(|a| a.pos == site && a.seq == seq)
-    //         .map(|a| a.freq)
-    //         .collect::<Vec<_>>()
-    //         .first()
-    //         .unwrap_or(&0.0)
-    // }
-
     fn polymorphic_sites(&self, sample: &Sample) -> Vec<usize> {
-        // TODO: está esto bien? creo que sí
         self.positions()
             .union(&sample.positions())
             .cloned()
@@ -124,7 +99,7 @@ fn sum_func(alleles_m: &Vec<Allele>, alleles_n: &Vec<Allele>, func: fn(f64, f64)
     alleles_m
         .iter()
         .cartesian_product(alleles_n)
-        .filter(|(a_m, a_n)| *a_m.seq == *a_n.seq)
+        .filter(|(a_m, a_n)| a_m.seq == a_n.seq)
         .map(|(a_m, a_n)| {
             debug!(
                 "Applying function to allele {:?}",
@@ -136,9 +111,14 @@ fn sum_func(alleles_m: &Vec<Allele>, alleles_n: &Vec<Allele>, func: fn(f64, f64)
 }
 
 fn polymorphic_site_quotient(alleles_m: Vec<Allele>, alleles_n: Vec<Allele>) -> f64 {
+    debug!("Calculating numerator");
     let num = sum_func(&alleles_m, &alleles_n, sq_dif);
+    debug!("Calculating denominator");
     let den_term = sum_func(&alleles_m, &alleles_n, sq_sum);
     let den = 4.0 - den_term;
+    if den < 0.0 {
+        warn!("Quotient denominator is negative");
+    }
     let q = if den != 0.0 { num / den } else { 0.0 };
     debug!("Quotient = {num} / (4.0 - {den_term}) = {q}");
     q
@@ -172,9 +152,11 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         let _ = SimpleLogger::init(LevelFilter::Info, Config::default());
     }
     // Read input table
+    info!("Reading input table");
     let input_table = File::open(args.input)?;
     let samples = io::read_input_table(input_table)?;
     // Read reference sequence
+    info!("Reading reference sequence");
     let reference_record = io::read_monofasta(&args.reference);
     let reference = reference_record.seq();
     // Calculate distances

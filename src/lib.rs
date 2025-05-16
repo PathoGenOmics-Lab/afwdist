@@ -174,11 +174,13 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     // Read input table
     info!("Reading input table");
     let input_table = File::open(args.input)?;
-    let samples = io::read_input_table(input_table)?;
+    let mut samples = io::read_input_table(input_table)?;
     // Read reference sequence
     info!("Reading reference sequence");
     let reference_record = io::read_monofasta(&args.reference);
     let reference = reference_record.seq();
+    let reference_sample = Sample { name: reference_record.id().to_string(), variants: vec![] };
+    samples.push(reference_sample);
     // Calculate distances and write results
     let distances = samples.iter().combinations(2).map(|pair| {
         let m = pair[0];

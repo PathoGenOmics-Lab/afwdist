@@ -44,3 +44,26 @@ It also expects the reference sequence used for variant calling in FASTA format.
 ## Citation
 
 > Álvarez-Herrera, M. & Sevilla, J., Ruiz-Rodriguez, P., Vergara, A., Vila, J., Cano-Jiménez, P., González-Candelas, F., Comas, I., & Coscollá, M. (2024). VIPERA: Viral Intra-Patient Evolution Reporting and Analysis. Virus Evolution, 10(1), veae018. https://doi.org/10.1093/ve/veae018
+
+## Contributors
+
+Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/ahmig"><img src="https://avatars.githubusercontent.com/u/30174538?v=4?s=100" width="100px;" alt="Miguel Álvarez Herrera"/><br /><sub><b>Miguel Álvarez Herrera</b></sub></a><br /><a href="https://github.com/ahmig/afwdist/commits?author=ahmig" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/SeviJordi"><img src="https://avatars.githubusercontent.com/u/124465736?v=4?s=100" width="100px;" alt="Jordi Sevilla Fortuny"/><br /><sub><b>Jordi Sevilla Fortuny</b></sub></a><br /><a href="https://github.com/ahmig/afwdist/issues?q=author%3ASeviJordi" title="Bug reports">🐛</a> <a href="#userTesting-SeviJordi" title="User Testing">📓</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+
+This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification.

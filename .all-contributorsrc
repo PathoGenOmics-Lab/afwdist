@@ -1,0 +1,35 @@
+{
+  "projectName": "afwdist",
+  "projectOwner": "PathoGenOmics-Lab",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "none",
+  "contributors": [
+    {
+      "login": "ahmig",
+      "name": "Miguel Álvarez Herrera",
+      "avatar_url": "https://avatars.githubusercontent.com/u/30174538?v=4",
+      "profile": "https://github.com/ahmig",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "SeviJordi",
+      "name": "Jordi Sevilla Fortuny",
+      "avatar_url": "https://avatars.githubusercontent.com/u/124465736?v=4",
+      "profile": "https://github.com/SeviJordi",
+      "contributions": [
+        "bug",
+        "userTesting"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "linkToUsage": false
+}

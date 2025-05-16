@@ -196,7 +196,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     samples.push(reference_sample);
     // Check that all sample identifiers are unique
     if repeated_sample_names(&samples) {
-        warn!("There are repeated sample names (check that the reference record ID is not used as an input sample name)");
+        warn!(
+            "There are repeated sample names (check that the reference record ID is not used as an input sample name)"
+        );
     }
     // Calculate distances and write results
     let distances = samples.iter().combinations(2).map(|pair| {
@@ -307,5 +309,59 @@ mod tests {
         let d_m_n = afwdist(&m, &n, reference);
         let d_n_m = afwdist(&n, &m, reference);
         assert_approx_eq!(d_m_n, d_n_m);
+    }
+
+    #[test]
+    fn read_table() {
+        let input_table = File::open("test/input.csv").unwrap();
+        let samples = io::read_input_table(input_table).unwrap();
+        assert_eq!(samples.len(), 2);
+        let a = &samples[0];
+        assert_eq!(a.name, "a".to_string());
+        assert_eq!(a.variants.len(), 1);
+        assert_eq!(a.variants[0].pos, 1);
+        assert_eq!(a.variants[0].seq, b"A".to_vec());
+        assert_approx_eq!(a.variants[0].freq, 0.5);
+        let b = &samples[1];
+        assert_eq!(b.name, "b".to_string());
+        assert_eq!(b.variants.len(), 2);
+        assert_eq!(b.variants[0].pos, 1);
+        assert_eq!(b.variants[0].seq, b"A".to_vec());
+        assert_approx_eq!(b.variants[0].freq, 0.25);
+        assert_eq!(b.variants[1].pos, 1);
+        assert_eq!(b.variants[1].seq, b"C".to_vec());
+        assert_approx_eq!(b.variants[1].freq, 0.5);
+    }
+
+    #[test]
+    fn read_test_fasta() {
+        let reference_record = io::read_monofasta("test/reference.fasta");
+        let reference = reference_record.seq();
+        assert_eq!(reference, b"G");
+    }
+
+    #[test]
+    fn distance_from_files() {
+        let input_table = File::open("test/input.csv").unwrap();
+        let samples = io::read_input_table(input_table).unwrap();
+        let reference_record = io::read_monofasta("test/reference.fasta");
+        let reference = reference_record.seq();
+        let a = &samples[0];
+        let b = &samples[1];
+        let a1A = &a.variants[0].freq;
+        let a1C = 0.0;
+        let a1G = 1.0 - a1A - a1C;
+        let b1A = &b.variants[0].freq;
+        let b1C = &b.variants[1].freq;
+        let b1G = 1.0 - b1A - b1C;
+        let num_1A = f64::powf(a1A - b1A, 2.0);
+        let num_1C = f64::powf(a1C - b1C, 2.0);
+        let num_1G = f64::powf(a1G - b1G, 2.0);
+        let den_1A = f64::powf(a1A + b1A, 2.0);
+        let den_1C = f64::powf(a1C + b1C, 2.0);
+        let den_1G = f64::powf(a1G + b1G, 2.0);
+        let manual_d = (num_1A + num_1C + num_1G) / (4.0 - (den_1A + den_1C + den_1G));
+        let d = afwdist(a, b, reference);
+        assert_eq!(d, manual_d);
     }
 }

@@ -4,6 +4,7 @@ use std::fs::File;
 
 use bio::io::fasta;
 use csv;
+use itertools::Itertools;
 use log::*;
 
 use crate::{Allele, Sample};
@@ -58,7 +59,10 @@ pub(crate) fn read_input_table(reader: File) -> Result<Vec<Sample>, Box<dyn Erro
             );
         }
     }
-    Ok(samples.into_values().collect())
+    Ok(samples
+        .into_values()
+        .sorted_by(|a, b| Ord::cmp(&a.name, &b.name))
+        .collect())
 }
 
 pub(crate) fn write_output_table<I: Iterator<Item = (String, String, f64)>>(

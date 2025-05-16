@@ -5,7 +5,6 @@ use std::{error::Error, fs::File};
 use clap::Parser;
 use itertools::Itertools;
 use log::*;
-use memoize::memoize;
 use simplelog::*;
 
 mod io;
@@ -101,15 +100,11 @@ impl Sample {
 }
 
 fn sq_dif(freq_m: f64, freq_n: f64) -> f64 {
-    let n = f64::powf(freq_m - freq_n, 2.0);
-    debug!("({freq_m} - {freq_n}) ** 2 = {n}");
-    n
+    f64::powf(freq_m - freq_n, 2.0)
 }
 
 fn sq_sum(freq_m: f64, freq_n: f64) -> f64 {
-    let n = f64::powf(freq_m + freq_n, 2.0);
-    debug!("({freq_m} + {freq_n}) ** 2 = {n}");
-    n
+    f64::powf(freq_m + freq_n, 2.0)
 }
 
 fn sum_func(alleles_m: &Vec<Allele>, alleles_n: &Vec<Allele>, func: fn(f64, f64) -> f64) -> f64 {
@@ -194,16 +189,17 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     info!("Reading reference sequence");
     let reference_record = io::read_monofasta(&args.reference);
     let reference = reference_record.seq();
-    // Calculate distances
+    // Calculate distances and write results
     let distances = samples.iter().combinations(2).map(|pair| {
         let m = pair[0];
         let n = pair[1];
-        info!(
+        debug!(
             "Calculating distance between sample {:?} and {:?}",
             m.name, n.name
         );
         (m.name.clone(), n.name.clone(), afwdist(&m, &n, reference))
     });
+    info!("Calculating distances and writing results");
     io::write_output_table(distances, args.output)?;
     Ok(())
 }

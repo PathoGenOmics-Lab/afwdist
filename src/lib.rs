@@ -1,4 +1,5 @@
 use std::collections::HashSet;
+use std::fmt;
 use std::{error::Error, fs::File};
 
 use clap::Parser;
@@ -38,6 +39,18 @@ struct Allele {
     freq: f64,
 }
 
+impl fmt::Debug for Allele {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}:{}:{:.2}",
+            self.pos,
+            String::from_utf8_lossy(&self.seq),
+            self.freq
+        )
+    }
+}
+
 struct Sample {
     name: String,
     variants: Vec<Allele>,
@@ -56,7 +69,7 @@ impl Sample {
         let mut alleles: Vec<Allele> = self.alleles_at(site).into_iter().cloned().collect();
         let variant_frequency: f64 = alleles.iter().map(|a| a.freq).sum();
         debug!(
-            "Sample {} - total variant frequency for site {site} = {variant_frequency}",
+            "Sample {:?} - total variant frequency for site {site} = {variant_frequency}",
             self.name
         );
         let reference_allele = Allele {
@@ -65,13 +78,17 @@ impl Sample {
             freq: 1.0 - variant_frequency,
         };
         debug!(
-            "Sample {} - setting reference allele {:?} at site {} to {}",
+            "Sample {:?} - setting reference allele {:?} at site {} to {}",
             self.name,
             String::from_utf8_lossy(&reference_allele.seq),
             site,
             reference_allele.freq
         );
         alleles.push(reference_allele);
+        debug!(
+            "Sample {:?} - alleles at site {site}: {alleles:?}",
+            self.name
+        );
         alleles
     }
 
@@ -101,10 +118,7 @@ fn sum_func(alleles_m: &Vec<Allele>, alleles_n: &Vec<Allele>, func: fn(f64, f64)
         .cartesian_product(alleles_n)
         .filter(|(a_m, a_n)| a_m.seq == a_n.seq)
         .map(|(a_m, a_n)| {
-            debug!(
-                "Applying function to allele {:?}",
-                String::from_utf8_lossy(&a_m.seq)
-            );
+            debug!("Applying function to alleles {a_m:?} and {a_n:?}");
             func(a_m.freq, a_n.freq)
         })
         .sum()
@@ -124,15 +138,36 @@ fn polymorphic_site_quotient(alleles_m: Vec<Allele>, alleles_n: Vec<Allele>) -> 
     q
 }
 
+fn complete_frequencies(alleles: &Vec<Allele>, with_alleles: &Vec<Allele>) -> Vec<Allele> {
+    let mut completed_alleles = alleles.clone();
+    for allele in with_alleles {
+        if alleles.iter().all(|a| a.seq != allele.seq) {
+            debug!("Adding allele {allele:?}");
+            completed_alleles.push(Allele {
+                pos: allele.pos,
+                seq: allele.seq.clone(),
+                freq: 0.0,
+            });
+        }
+    }
+    debug!("Completed alleles: {completed_alleles:?}");
+    completed_alleles
+}
+
 fn afwdist(m: &Sample, n: &Sample, reference: &[u8]) -> f64 {
     debug!("Polymorphic sites: {:?}", m.polymorphic_sites(n));
     let terms: Vec<_> = m
         .polymorphic_sites(n)
         .iter()
         .map(|&site| {
+            debug!("Processing site {site}");
+            // Get alleles including the reference one
+            let m_alleles = m.alleles_incl_ref_at(site, reference);
+            let n_alleles = n.alleles_incl_ref_at(site, reference);
+            // Complete with each other's potentially missing alleles
             polymorphic_site_quotient(
-                m.alleles_incl_ref_at(site, reference),
-                n.alleles_incl_ref_at(site, reference),
+                complete_frequencies(&m_alleles, &n_alleles),
+                complete_frequencies(&n_alleles, &m_alleles),
             )
         })
         .collect();

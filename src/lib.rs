@@ -26,7 +26,7 @@ struct Args {
     #[arg(short = 'o', long, required = true)]
     output: String,
 
-    /// Prints debug messages
+    /// Enable debug messages
     #[arg(short = 'v', long, default_value_t = false)]
     verbose: bool,
 }
@@ -113,31 +113,16 @@ fn sum_func(alleles_m: &Vec<Allele>, alleles_n: &Vec<Allele>, func: fn(f64, f64)
         .cartesian_product(alleles_n)
         .filter(|(a_m, a_n)| a_m.seq == a_n.seq)
         .map(|(a_m, a_n)| {
-            debug!("Applying function to alleles {a_m:?} and {a_n:?}");
+            debug!("Operating on frequencies of alleles {a_m:?} and {a_n:?}");
             func(a_m.freq, a_n.freq)
         })
         .sum()
-}
-
-fn polymorphic_site_quotient(alleles_m: Vec<Allele>, alleles_n: Vec<Allele>) -> f64 {
-    debug!("Calculating numerator");
-    let num = sum_func(&alleles_m, &alleles_n, sq_dif);
-    debug!("Calculating denominator");
-    let den_term = sum_func(&alleles_m, &alleles_n, sq_sum);
-    let den = 4.0 - den_term;
-    if den < 0.0 {
-        warn!("Quotient denominator is negative");
-    }
-    let q = if den != 0.0 { num / den } else { 0.0 };
-    debug!("Quotient = {num} / (4.0 - {den_term}) = {q}");
-    q
 }
 
 fn complete_frequencies(alleles: &Vec<Allele>, with_alleles: &Vec<Allele>) -> Vec<Allele> {
     let mut completed_alleles = alleles.clone();
     for allele in with_alleles {
         if alleles.iter().all(|a| a.seq != allele.seq) {
-            debug!("Adding allele {allele:?}");
             completed_alleles.push(Allele {
                 pos: allele.pos,
                 seq: allele.seq.clone(),
@@ -150,26 +135,31 @@ fn complete_frequencies(alleles: &Vec<Allele>, with_alleles: &Vec<Allele>) -> Ve
 }
 
 fn afwdist(m: &Sample, n: &Sample, reference: &[u8]) -> f64 {
-    debug!("Polymorphic sites: {:?}", m.polymorphic_sites(n));
-    let terms: Vec<_> = m
-        .polymorphic_sites(n)
+    m.polymorphic_sites(n)
         .iter()
         .map(|&site| {
             debug!("Processing site {site}");
             // Get alleles including the reference one
-            let m_alleles = m.alleles_incl_ref_at(site, reference);
-            let n_alleles = n.alleles_incl_ref_at(site, reference);
+            let alleles_m = m.alleles_incl_ref_at(site, reference);
+            let alleles_n = n.alleles_incl_ref_at(site, reference);
             // Complete with each other's potentially missing alleles
-            polymorphic_site_quotient(
-                complete_frequencies(&m_alleles, &n_alleles),
-                complete_frequencies(&n_alleles, &m_alleles),
-            )
+            let complete_alleles_m = complete_frequencies(&alleles_m, &alleles_n);
+            let complete_alleles_n = complete_frequencies(&alleles_n, &alleles_m);
+            // Calculate distances
+            let denominator = 4.0 - sum_func(&complete_alleles_m, &complete_alleles_n, sq_sum);
+            if denominator < 0.0 {
+                warn!(
+                    "Term denominator is negative for site {site} of samples {:?} and {:?}",
+                    m.name, n.name
+                );
+            }
+            if denominator != 0.0 {
+                sum_func(&complete_alleles_m, &complete_alleles_n, sq_dif) / denominator
+            } else {
+                0.0
+            }
         })
-        .collect();
-    debug!("Terms: {terms:?}");
-    let d = terms.into_iter().sum();
-    debug!("Distance({}, {}) = {}", m.name, n.name, d);
-    d
+        .sum()
 }
 
 pub fn run() -> Result<(), Box<dyn Error>> {
@@ -201,6 +191,7 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     });
     info!("Calculating distances and writing results");
     io::write_output_table(distances, args.output)?;
+    info!("Done");
     Ok(())
 }
 

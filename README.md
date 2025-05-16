@@ -29,17 +29,21 @@ Options:
 
 ### Inputs and outputs
 
-The software expects a simple table in CSV format (possibly extracted from a VCF file) containing one genetic variants in each row as an input. There must be four columns:
+The program takes as input a table in CSV format (possibly derived from a VCF file) where each row represents a single genetic variant. The input table must contain four columns:
 
-- `sample` (a string): a unique identifier for the group of variants for the pairwise comparison.
-- `position` (an integer): the start site of the variant.
+- `sample` (a string): a unique identifier for the group of variants used in pairwise comparisons.
+- `position` (an integer): the site of the variant.
 - `sequence` (a string): the sequence of the variant (i.e. the alternate allele).
-- `frequency` (a real number from 0 to 1): the relative frequency of the variant in the `sample`.
+- `frequency` (a real number from 0 to 1): the relative frequency of the variant within the sample.
 
-It also expects the reference sequence used for variant calling in FASTA format. As a result, a table in CSV format is produced. This table contains three columns:
+In addition to the variant table, the program requires a reference sequence in FASTA format. The sequence should be the same one used for variant calling. This reference is used to infer the frequencies of reference alleles, assuming that any frequency not taken up by listed variants belongs to the reference allele at that site. In addition to the pairwise distance between samples, the distance between each sample and the reference sequence is also calculated by building a reference sample as a baseline with no variant alleles (i.e. all sites are assumed to have an allele frequency of 1).
 
-- `sample_m` and `sample_n` (strings): the identifiers of the two samples subject to the distance calculation, taken from the input `sample` column.
-- `distance` (a real number): the calculated pairwise distance between the samples.
+The distance of each sample is calculated against the reference as well, treating it as a normal sample with no allele variants (all reference allele frequencies are fixed within the reference virtual sample).
+
+As a result, a table in CSV format is produced. This table contains three columns:
+
+- `sample_m` and `sample_n` (strings): the identifiers of the two samples being compared.
+- `distance` (a real number): the calculated pairwise distance between the two samples.
 
 ## Citation
 

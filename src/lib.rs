@@ -162,6 +162,16 @@ fn afwdist(m: &Sample, n: &Sample, reference: &[u8]) -> f64 {
         .sum()
 }
 
+fn repeated_sample_names(samples: &Vec<Sample>) -> bool {
+    let n_unique: usize = samples
+        .iter()
+        .map(|sample| &sample.name)
+        .unique()
+        .map(|_| 1)
+        .sum();
+    n_unique != samples.len()
+}
+
 pub fn run() -> Result<(), Box<dyn Error>> {
     // Arguments
     let args = Args::parse();
@@ -179,8 +189,15 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     info!("Reading reference sequence");
     let reference_record = io::read_monofasta(&args.reference);
     let reference = reference_record.seq();
-    let reference_sample = Sample { name: reference_record.id().to_string(), variants: vec![] };
+    let reference_sample = Sample {
+        name: reference_record.id().to_string(),
+        variants: vec![],
+    };
     samples.push(reference_sample);
+    // Check that all sample identifiers are unique
+    if repeated_sample_names(&samples) {
+        warn!("There are repeated sample names (check that the reference record ID is not used as an input sample name)");
+    }
     // Calculate distances and write results
     let distances = samples.iter().combinations(2).map(|pair| {
         let m = pair[0];

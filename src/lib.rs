@@ -14,11 +14,11 @@ mod io;
 #[command(author = "Miguel Álvarez Herrera <miguel.alvarez@uv.es>")]
 #[command(version)]
 struct Args {
-    // Input tree in CSV format (mandatory CSV columns are 'sample', 'position' and 'frequency')
+    /// Input tree in CSV format (mandatory CSV columns are 'sample', 'position', 'sequence' and 'frequency')
     #[arg(short = 'i', long, required = true)]
     input: String,
 
-    // Reference sequence in FASTA format
+    /// Reference sequence in FASTA format
     #[arg(short = 'r', long, required = true)]
     reference: String,
 

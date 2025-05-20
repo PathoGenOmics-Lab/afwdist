@@ -26,6 +26,10 @@ struct Args {
     #[arg(short = 'o', long, required = true)]
     output: String,
 
+    /// Include reference as a sample with 100% fixed alleles
+    #[arg(short = 's', long, default_value_t = false)]
+    include_reference: bool,
+
     /// Enable debug messages
     #[arg(short = 'v', long, default_value_t = false)]
     verbose: bool,
@@ -189,11 +193,14 @@ pub fn run() -> Result<(), Box<dyn Error>> {
     info!("Reading reference sequence");
     let reference_record = io::read_monofasta(&args.reference);
     let reference = reference_record.seq();
-    let reference_sample = Sample {
-        name: reference_record.id().to_string(),
-        variants: vec![],
-    };
-    samples.push(reference_sample);
+    // Add reference sample if requested
+    if args.include_reference {
+        let reference_sample = Sample {
+            name: reference_record.id().to_string(),
+            variants: vec![],
+        };
+        samples.push(reference_sample);
+    }
     // Check that all sample identifiers are unique
     if repeated_sample_names(&samples) {
         warn!(

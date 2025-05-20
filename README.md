@@ -22,6 +22,7 @@ Options:
   -i, --input <INPUT>          Input tree in CSV format (mandatory CSV columns are 'sample', 'position', 'sequence' and 'frequency')
   -r, --reference <REFERENCE>  Reference sequence in FASTA format
   -o, --output <OUTPUT>        Output CSV file with distances between each pair of samples
+  -s, --include-reference      Include reference as a sample with 100% fixed alleles
   -v, --verbose                Enable debug messages
   -h, --help                   Print help
   -V, --version                Print version
@@ -36,7 +37,7 @@ The program takes as input a table in CSV format (possibly derived from a VCF fi
 - `sequence` (a string): the sequence of the variant (i.e. the alternate allele).
 - `frequency` (a real number from 0 to 1): the relative frequency of the variant within the sample.
 
-In addition to the variant table, the program requires a reference sequence in FASTA format. The sequence should be the same one used for variant calling. This reference is used to infer the frequencies of reference alleles, assuming that any frequency not taken up by listed variants belongs to the reference allele at that site. In addition to the pairwise distance between samples, the distance between each sample and the reference sequence is also calculated by building a reference sample as a baseline with no variant alleles (i.e. all sites are assumed to have an allele frequency of 1).
+In addition to the variant table, the program requires a reference sequence in FASTA format. The sequence should be the same one used for variant calling. This reference is used to infer the frequencies of reference alleles, assuming that any frequency not taken up by listed variants belongs to the reference allele at that site. In addition to the pairwise distance between samples, the distance between each sample and the reference sequence can also calculated (if requested) by building a reference sample as a baseline with no variant alleles (i.e. all sites are assumed to have an allele frequency of 1).
 
 The distance of each sample is calculated against the reference as well, treating it as a normal sample with no allele variants (all reference allele frequencies are fixed within the reference virtual sample).
 

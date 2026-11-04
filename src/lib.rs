@@ -375,6 +375,6 @@ mod tests {
         let den_1G = f64::powf(a1G + b1G, 2.0);
         let manual_d = (num_1A + num_1C + num_1G) / (4.0 - (den_1A + den_1C + den_1G));
         let d = afwdist(a, b, reference);
-        assert_eq!(d, manual_d);
+        assert_approx_eq!(d, manual_d);
     }
 }

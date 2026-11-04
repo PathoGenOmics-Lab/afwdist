@@ -69,7 +69,10 @@ pub(crate) fn write_output_table<I: Iterator<Item = (String, String, f64)>>(
     rows: I,
     path: String,
 ) -> Result<(), Box<dyn Error>> {
-    let mut wtr = csv::Writer::from_path(path)?;
+    let mut wtr = csv::WriterBuilder::new()
+        .has_headers(false)
+        .from_path(path)?;
+    wtr.write_record(["sample_m", "sample_n", "distance"])?;
     for (sample_m, sample_n, distance) in rows {
         wtr.serialize(OutputRow {
             sample_m,
@@ -77,5 +80,6 @@ pub(crate) fn write_output_table<I: Iterator<Item = (String, String, f64)>>(
             distance,
         })?;
     }
+    wtr.flush()?;
     Ok(())
 }

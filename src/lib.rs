@@ -201,6 +201,9 @@ pub fn run() -> Result<(), Box<dyn Error>> {
         };
         samples.push(reference_sample);
     }
+    if samples.len() < 2 {
+        warn!("There are less than two samples");
+    }
     // Check that all sample identifiers are unique
     if repeated_sample_names(&samples) {
         warn!(

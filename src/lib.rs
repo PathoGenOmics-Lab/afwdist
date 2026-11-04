@@ -96,10 +96,13 @@ impl Sample {
     }
 
     fn polymorphic_sites(&self, sample: &Sample) -> Vec<usize> {
-        self.positions()
+        let mut sites: Vec<usize> = self
+            .positions()
             .union(&sample.positions())
             .cloned()
-            .collect()
+            .collect();
+        sites.sort_unstable();
+        sites
     }
 }
 
